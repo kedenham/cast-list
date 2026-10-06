@@ -371,13 +371,12 @@
     if (!guest){ setVerdict("taken", "Hold on", "And your name – an unclaimed costume needs an owner."); guestInput.focus(); return; }
     if (!normalise(character)){ setVerdict("taken", "Hold on", "That character name needs at least one letter or number."); return; }
 
-    busy = true; claimBtn.disabled = true; claimBtn.textContent = "Checking…";
-    setVerdict("", "", "One moment – confirming with the box office. This can take a few seconds…");
+    busy = true; claimBtn.disabled = true; claimBtn.textContent = "Sent…";
+    setVerdict("", "Claim sent", "Confirming with the box office – the bill below updates the moment it’s yours. Usually a few seconds.");
 
-    /* The save round-trip itself confirms the server finished, so we
-       celebrate as soon as it lands and verify against the refreshed
-       list in the background, correcting in the rare miss. (Google's
-       reply body is unreadable after its redirect, hence no-cors.) */
+    /* Hand the claim to the browser to deliver (it completes even if
+       the page closes), then watch the bill until the claim appears –
+       the guest never waits on Google's slow reply. */
     var norm2 = normalise(character);
 
     function showSuccess(){
@@ -392,32 +391,34 @@
       busy = false; claimBtn.disabled = false; claimBtn.textContent = "Claim it";
     }
 
-    fetch(API, {
-      method: "POST",
-      mode: "no-cors",
-      body: JSON.stringify({ character: character, film: film, guest: guest })
-    }).then(function(){ return true; }, function(){ return false; })
-      .then(function(sent){
-        if (sent){ showSuccess(); release(); }
-        /* background confirmation either way */
-        return new Promise(function(res){ setTimeout(res, 600); })
-          .then(function(){ return refresh(); })
-          .then(function(ok){
-            if (!ok){
-              /* Couldn't verify – trust the save if it was sent,
-                 otherwise ask them to try again. */
-              if (!sent){ showMiss(); release(); }
-              return;
-            }
-            var onBill = claims.some(function(c){ return normOf(c) === norm2; });
-            if (!sent){
-              if (onBill){ showSuccess(); } else { showMiss(); }
-              release();
-            } else if (!onBill){
-              showMiss();
-            }
-          });
+    var payload = JSON.stringify({ character: character, film: film, guest: guest });
+    var handedOff = false;
+    try {
+      if (navigator.sendBeacon){
+        handedOff = navigator.sendBeacon(API, new Blob([payload], { type: "text/plain" }));
+      }
+    } catch(e){}
+    if (!handedOff){
+      fetch(API, { method: "POST", mode: "no-cors", body: payload }).catch(function(){});
+    }
+
+    /* Watch the bill until the claim shows up (the save refreshes the
+       server cache, so it appears as soon as Google has written it). */
+    var attempts = 0;
+    function pollForClaim(){
+      attempts++;
+      refresh().then(function(ok){
+        var onBill = ok && claims.some(function(c){ return normOf(c) === norm2; });
+        if (onBill){
+          showSuccess(); release();
+        } else if (attempts >= 8){
+          showMiss(); release();
+        } else {
+          setTimeout(pollForClaim, 3000);
+        }
       });
+    }
+    setTimeout(pollForClaim, 2500);
   }
 
   charInput.addEventListener("input", checkVerdict);
