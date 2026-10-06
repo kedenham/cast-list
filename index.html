@@ -331,11 +331,14 @@
   }
 
   /* ---------- server ---------- */
-  /* Give list requests 8 seconds to answer, then cut and retry –
-     a hung request would otherwise leave the page loading forever. */
+  /* Cut off and retry a request that hangs – but give each retry
+     more patience, so a slow-but-alive Google still gets to answer
+     instead of being cut at the knees every time. */
+  var listFailStreak = 0;
   function fetchList(){
+    var patience = Math.min(8000 + listFailStreak * 7000, 25000);
     var ctl = ("AbortController" in window) ? new AbortController() : null;
-    var timer = ctl ? setTimeout(function(){ ctl.abort(); }, 8000) : null;
+    var timer = ctl ? setTimeout(function(){ ctl.abort(); }, patience) : null;
     var opts = ctl ? { signal: ctl.signal } : {};
     return fetch(API, opts).then(
       function(r){ if (timer) clearTimeout(timer); return r; },
@@ -348,18 +351,20 @@
     return fetchList().then(function(r){ return r.json(); }).then(function(data){
       claims = (data && data.claims) || [];
       everLoaded = true;
+      listFailStreak = 0;
       renderList();
       checkVerdict();
       return true;
     }).catch(function(){
       /* A single missed poll is routine – keep the list we have and
          quietly try again. Only warn when nothing has ever loaded. */
+      listFailStreak++;
       if (!everLoaded){
         listStatus.hidden = false;
         listStatus.textContent = "Loading full character list – please wait…";
       }
       if (!retryTimer){
-        retryTimer = setTimeout(function(){ retryTimer = null; refresh(); }, 5000);
+        retryTimer = setTimeout(function(){ retryTimer = null; refresh(); }, 2000);
       }
       return false;
     });
