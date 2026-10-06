@@ -209,7 +209,7 @@
   <footer class="smallprint">
     <p>&#9642; Films released 1986 or later &ndash; forty years of inspiration.</p>
     <p>&#9642; Maximum effort encouraged.</p>
-    <p>&#9642; Checker is entirely anonymous.</p>
+    <p>&#9642; Only Kate sees who&rsquo;s who &ndash; to maintain the element of surprise.</p>
     <p>&#9642; It will flag near misses so you can decide!</p>
   </footer>
 </div>
@@ -350,25 +350,31 @@
     if (!normalise(character)){ setVerdict("taken", "Hold on", "That character name needs at least one letter or number."); return; }
 
     busy = true; claimBtn.disabled = true; claimBtn.textContent = "Checking…";
+
+    /* Send the claim without trying to read Google's reply (some
+       browsers block it after the redirect), then verify against the
+       refreshed list – the sheet is the referee. */
+    var norm2 = normalise(character);
     fetch(API, {
       method: "POST",
+      mode: "no-cors",
       body: JSON.stringify({ character: character, film: film, guest: guest })
-    }).then(function(r){ return r.json(); }).then(function(res){
-      if (res && res.ok){
-        setVerdict("success", "You’re on the bill", character + " is yours. Your name stays off the public bill – see you in November.");
-        try { localStorage.setItem("castlist-name", guest); } catch(e){}
-        charInput.value = ""; filmInput.value = "";
-      } else if (res && res.reason === "taken"){
-        setVerdict("taken", "Taken", "Someone beat you to “" + (res.character || character) + "”.");
-      } else {
-        setVerdict("close", "Hiccup", "That didn’t save – give it a moment and try again.");
-      }
-      return refresh();
-    }).catch(function(){
-      setVerdict("close", "Hiccup", "That didn’t save – check your signal and try again.");
-    }).then(function(){
-      busy = false; claimBtn.disabled = false; claimBtn.textContent = "Claim it";
-    });
+    }).catch(function(){ /* verified below either way */ })
+      .then(function(){ return new Promise(function(res){ setTimeout(res, 900); }); })
+      .then(function(){ return refresh(); })
+      .then(function(){
+        var onBill = claims.some(function(c){ return normOf(c) === norm2; });
+        if (onBill){
+          setVerdict("success", "You’re on the bill", character + " is yours. Your name stays off the public bill – see you in November.");
+          try { localStorage.setItem("castlist-name", guest); } catch(e){}
+          charInput.value = ""; filmInput.value = "";
+        } else {
+          setVerdict("close", "Hiccup", "That didn’t save – give it a moment and try again.");
+        }
+      })
+      .then(function(){
+        busy = false; claimBtn.disabled = false; claimBtn.textContent = "Claim it";
+      });
   }
 
   charInput.addEventListener("input", checkVerdict);
