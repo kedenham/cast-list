@@ -203,7 +203,7 @@
     <h2 id="creditsTitle">Now Cast</h2>
     <span id="count"></span>
     <ol id="castList"></ol>
-    <p id="listStatus">Raising the curtain&hellip;</p>
+    <p id="listStatus">Loading full character list &ndash; please wait&hellip;</p>
   </section>
 
   <footer class="smallprint">
@@ -329,14 +329,25 @@
   }
 
   /* ---------- server ---------- */
+  var everLoaded = false, retryTimer = null;
   function refresh(){
     return fetch(API).then(function(r){ return r.json(); }).then(function(data){
       claims = (data && data.claims) || [];
+      everLoaded = true;
       renderList();
       checkVerdict();
+      return true;
     }).catch(function(){
-      listStatus.hidden = false;
-      listStatus.textContent = "The list isn’t loading – check your signal and refresh.";
+      /* A single missed poll is routine – keep the list we have and
+         quietly try again. Only warn when nothing has ever loaded. */
+      if (!everLoaded){
+        listStatus.hidden = false;
+        listStatus.textContent = "Loading full character list – please wait…";
+      }
+      if (!retryTimer){
+        retryTimer = setTimeout(function(){ retryTimer = null; refresh(); }, 5000);
+      }
+      return false;
     });
   }
 
@@ -381,7 +392,13 @@
         /* background confirmation either way */
         return new Promise(function(res){ setTimeout(res, 600); })
           .then(function(){ return refresh(); })
-          .then(function(){
+          .then(function(ok){
+            if (!ok){
+              /* Couldn't verify – trust the save if it was sent,
+                 otherwise ask them to try again. */
+              if (!sent){ showMiss(); release(); }
+              return;
+            }
             var onBill = claims.some(function(c){ return normOf(c) === norm2; });
             if (!sent){
               if (onBill){ showSuccess(); } else { showMiss(); }
