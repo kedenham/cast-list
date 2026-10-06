@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Cast List</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap">
+<style>
+  :root{
+    --bg:#191013;
+    --panel:#241619;
+    --field:#140c0e;
+    --ink:#F2E7D8;
+    --muted:#A78F80;
+    --line:#4A3237;
+    --gold:#D9A441;
+    --gold-bright:#E8B95C;
+    --free:#8FBF7F;
+    --taken:#E07B6A;
+    --close:#E0B15C;
+  }
+  html,body{margin:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Lora',Georgia,'Times New Roman',serif;
+    font-size:16px;
+    line-height:1.6;
+    padding:40px 20px 72px;
+  }
+  .wrap{max-width:620px;margin:0 auto}
+
+  header{text-align:center;margin-bottom:36px}
+  .eyebrow{
+    font-family:'Oswald',system-ui,sans-serif;
+    font-size:12px;font-weight:500;
+    letter-spacing:.22em;text-transform:uppercase;
+    color:var(--gold);
+  }
+  h1{
+    font-family:'Oswald',system-ui,sans-serif;
+    font-weight:600;
+    font-size:clamp(42px,10vw,60px);
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    margin:.1em 0 .15em;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .sub{font-style:italic;color:var(--muted);max-width:42ch;margin:0 auto}
+  .rule{
+    width:120px;margin:20px auto 0;height:5px;
+    border-top:1px solid var(--gold);
+    border-bottom:1px solid var(--gold);
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:26px 24px;
+    margin-bottom:44px;
+  }
+  .card h2{
+    font-family:'Oswald',system-ui,sans-serif;
+    font-size:13px;font-weight:500;
+    letter-spacing:.2em;text-transform:uppercase;
+    color:var(--gold);
+    margin:0 0 18px;text-align:center;
+  }
+  .fieldset{display:flex;flex-direction:column;gap:14px}
+  label{display:flex;flex-direction:column;gap:5px}
+  .lab{
+    font-family:'Oswald',system-ui,sans-serif;
+    font-size:11px;font-weight:500;
+    letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);
+  }
+  input[type="text"]{
+    background:var(--field);
+    border:1px solid var(--line);
+    border-radius:4px;
+    color:var(--ink);
+    font:inherit;
+    font-size:16px;
+    padding:10px 12px;
+  }
+  input[type="text"]::placeholder{color:#6e5a51;font-style:italic}
+  input[type="text"]:focus-visible{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+
+  #verdict{
+    margin-top:16px;
+    padding:12px 14px;
+    border-left:3px solid var(--line);
+    background:rgba(0,0,0,.18);
+    border-radius:0 4px 4px 0;
+    font-size:15px;
+    min-height:1.5em;
+    color:var(--muted);
+    transition:border-color .2s;
+  }
+  #verdict.free{border-left-color:var(--free);color:var(--ink)}
+  #verdict.taken{border-left-color:var(--taken);color:var(--ink)}
+  #verdict.close{border-left-color:var(--close);color:var(--ink)}
+  #verdict.success{border-left-color:var(--gold);color:var(--ink)}
+  #verdict .v-lead{
+    font-family:'Oswald',system-ui,sans-serif;
+    font-size:12px;font-weight:600;
+    letter-spacing:.14em;text-transform:uppercase;
+    display:block;margin-bottom:2px;
+  }
+  #verdict.free .v-lead{color:var(--free)}
+  #verdict.taken .v-lead{color:var(--taken)}
+  #verdict.close .v-lead{color:var(--close)}
+  #verdict.success .v-lead{color:var(--gold)}
+
+  #claimBtn{
+    margin-top:16px;width:100%;
+    background:var(--gold);
+    color:#211307;
+    border:0;border-radius:4px;
+    font-family:'Oswald',system-ui,sans-serif;
+    font-size:14px;font-weight:600;
+    letter-spacing:.18em;text-transform:uppercase;
+    padding:13px 16px;
+    cursor:pointer;
+    transition:background .15s;
+  }
+  #claimBtn:hover{background:var(--gold-bright)}
+  #claimBtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  #claimBtn:disabled{opacity:.45;cursor:default}
+
+  .credits h2{
+    font-family:'Oswald',system-ui,sans-serif;
+    font-size:13px;font-weight:500;
+    letter-spacing:.2em;text-transform:uppercase;
+    color:var(--gold);
+    text-align:center;margin:0 0 4px;
+  }
+  #count{
+    display:block;text-align:center;
+    color:var(--muted);font-style:italic;font-size:14px;
+    margin-bottom:20px;
+  }
+  #castList{list-style:none;margin:0;padding:0}
+  #castList li{display:flex;align-items:baseline;gap:10px;padding:9px 2px}
+  .role-block{display:flex;flex-direction:column;min-width:0;max-width:70%}
+  .role{
+    font-family:'Oswald',system-ui,sans-serif;
+    font-size:15px;font-weight:500;
+    letter-spacing:.06em;text-transform:uppercase;
+    overflow-wrap:break-word;
+  }
+  .film{font-size:13px;color:var(--muted);font-style:italic}
+  .dots{flex:1;min-width:20px;border-bottom:1px dotted var(--line);transform:translateY(-4px)}
+  .castmark{
+    font-family:'Oswald',system-ui,sans-serif;
+    font-size:11px;font-weight:500;
+    letter-spacing:.16em;text-transform:uppercase;
+    color:var(--gold);flex:none;
+  }
+  #listStatus{text-align:center;color:var(--muted);font-style:italic}
+
+  .smallprint{
+    margin-top:52px;padding-top:22px;
+    border-top:1px solid var(--line);
+    font-size:13.5px;color:var(--muted);
+  }
+  .smallprint p{margin:0 0 8px}
+  @media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Kate&rsquo;s 40th &middot; Clapham &middot; November 2026</p>
+    <h1>The Cast List</h1>
+    <p class="sub">Iconic film characters of the last forty years. One costume per character &ndash; whoever claims it first, wears it. Who&rsquo;s playing whom stays secret until the night.</p>
+    <div class="rule" aria-hidden="true"></div>
+  </header>
+
+  <section class="card" aria-labelledby="checkerTitle">
+    <h2 id="checkerTitle">Check the bill &amp; claim your role</h2>
+    <div class="fieldset" id="formFields">
+      <label>
+        <span class="lab">Your character</span>
+        <input type="text" id="characterInput" maxlength="60" autocomplete="off" placeholder="e.g. Edward Scissorhands">
+      </label>
+      <label>
+        <span class="lab">The film <span style="text-transform:none;letter-spacing:0">(optional)</span></span>
+        <input type="text" id="filmInput" maxlength="60" autocomplete="off" placeholder="e.g. Edward Scissorhands, 1990">
+      </label>
+      <label>
+        <span class="lab">Your name</span>
+        <input type="text" id="guestInput" maxlength="40" autocomplete="name" placeholder="Goes straight to Kate, never on the bill">
+      </label>
+    </div>
+    <div id="verdict" role="status">Type a character to check the bill.</div>
+    <button id="claimBtn" type="button">Claim it</button>
+  </section>
+
+  <section class="credits" aria-labelledby="creditsTitle">
+    <h2 id="creditsTitle">Now Cast</h2>
+    <span id="count"></span>
+    <ol id="castList"></ol>
+    <p id="listStatus">Raising the curtain&hellip;</p>
+  </section>
+
+  <footer class="smallprint">
+    <p>&#9642; Films released 1986 or later &ndash; forty years, same as the birthday girl.</p>
+    <p>&#9642; Come as the character, not the actor who played them.</p>
+    <p>&#9642; First to claim a character wears it. Near-misses (two Jokers, say) are settled by Kate, whose ruling is final and open to bribery.</p>
+    <p>&#9642; The bill shows which characters are taken, never by whom &ndash; names go straight to Kate.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* PASTE YOUR APPS SCRIPT WEB APP URL BETWEEN THE QUOTES BELOW
+     (it ends in /exec) */
+  var API = "PASTE_YOUR_WEB_APP_URL_HERE";
+
+  var $ = function(id){ return document.getElementById(id); };
+  var charInput = $("characterInput"), filmInput = $("filmInput"),
+      guestInput = $("guestInput"), verdictEl = $("verdict"),
+      claimBtn = $("claimBtn"), castList = $("castList"),
+      countEl = $("count"), listStatus = $("listStatus");
+
+  var claims = [], busy = false;
+
+  try { var savedName = localStorage.getItem("castlist-name"); if (savedName) guestInput.value = savedName; } catch(e){}
+
+  /* ---------- matching ---------- */
+  function normalise(s){
+    return (s || "").toLowerCase()
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/&/g, " and ")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim()
+      .replace(/^the /, "");
+  }
+  function normOf(c){ return c.norm || normalise(c.character); }
+  function lev(a, b){
+    var m = a.length, n = b.length, i, j;
+    if (!m) return n; if (!n) return m;
+    var prev = new Array(n + 1), cur = new Array(n + 1);
+    for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++){
+      cur[0] = i;
+      for (j = 1; j <= n; j++){
+        cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+      }
+      var t = prev; prev = cur; cur = t;
+    }
+    return prev[n];
+  }
+  function similarity(a, b){
+    if (!a || !b) return 0;
+    if (a === b) return 1;
+    var ta = a.split(" "), tb = b.split(" ");
+    var short_ = ta.length <= tb.length ? ta : tb;
+    var long_  = ta.length <= tb.length ? tb : ta;
+    if (short_.every(function(t){ return long_.indexOf(t) !== -1; })) return 0.9;
+    return 1 - lev(a, b) / Math.max(a.length, b.length);
+  }
+
+  /* ---------- verdict ---------- */
+  function setVerdict(cls, lead, text){
+    verdictEl.className = cls || "";
+    verdictEl.textContent = "";
+    if (lead){
+      var l = document.createElement("span");
+      l.className = "v-lead"; l.textContent = lead;
+      verdictEl.appendChild(l);
+    }
+    verdictEl.appendChild(document.createTextNode(text));
+  }
+  function checkVerdict(){
+    var norm = normalise(charInput.value);
+    if (!norm){ setVerdict("", "", "Type a character to check the bill."); return; }
+    var exact = null, near = [];
+    for (var i = 0; i < claims.length; i++){
+      var cn = normOf(claims[i]);
+      if (cn === norm){ exact = claims[i]; break; }
+      if (similarity(cn, norm) >= 0.75) near.push(claims[i]);
+    }
+    if (exact){
+      setVerdict("taken", "Taken", "Someone is already coming as “" + exact.character + "”. Back to the drawing board.");
+    } else if (near.length){
+      setVerdict("close", "Close call", "Someone has claimed “" + near[0].character + "”. Different enough? Your shout – you can still claim yours.");
+    } else {
+      setVerdict("free", "Free", "No one has claimed it. Put your name down before someone beats you to it.");
+    }
+  }
+
+  /* ---------- cast list ---------- */
+  function renderList(){
+    var sorted = claims.slice().sort(function(a, b){ return normOf(a) < normOf(b) ? -1 : 1; });
+    castList.textContent = "";
+    if (!sorted.length){
+      listStatus.hidden = false;
+      listStatus.textContent = "No one has claimed a character yet. The bill is wide open.";
+      countEl.textContent = "";
+      return;
+    }
+    listStatus.hidden = true;
+    countEl.textContent = sorted.length === 1 ? "1 character cast" : sorted.length + " characters cast";
+    var frag = document.createDocumentFragment();
+    sorted.forEach(function(c){
+      var li = document.createElement("li");
+      var block = document.createElement("span"); block.className = "role-block";
+      var role = document.createElement("span"); role.className = "role";
+      role.textContent = c.character || "";
+      block.appendChild(role);
+      if (c.film){
+        var film = document.createElement("span"); film.className = "film";
+        film.textContent = c.film;
+        block.appendChild(film);
+      }
+      var dots = document.createElement("span"); dots.className = "dots";
+      var mark = document.createElement("span"); mark.className = "castmark";
+      mark.textContent = "cast";
+      li.appendChild(block); li.appendChild(dots); li.appendChild(mark);
+      frag.appendChild(li);
+    });
+    castList.appendChild(frag);
+  }
+
+  /* ---------- server ---------- */
+  function refresh(){
+    return fetch(API).then(function(r){ return r.json(); }).then(function(data){
+      claims = (data && data.claims) || [];
+      renderList();
+      checkVerdict();
+    }).catch(function(){
+      listStatus.hidden = false;
+      listStatus.textContent = "The list isn’t loading – check your signal and refresh.";
+    });
+  }
+
+  function claim(){
+    if (busy) return;
+    var character = charInput.value.trim(),
+        film = filmInput.value.trim(),
+        guest = guestInput.value.trim();
+    if (!character){ setVerdict("taken", "Hold on", "Who are you coming as? Name your character first."); charInput.focus(); return; }
+    if (!guest){ setVerdict("taken", "Hold on", "And your name – an unclaimed costume needs an owner."); guestInput.focus(); return; }
+    if (!normalise(character)){ setVerdict("taken", "Hold on", "That character name needs at least one letter or number."); return; }
+
+    busy = true; claimBtn.disabled = true; claimBtn.textContent = "Checking…";
+    fetch(API, {
+      method: "POST",
+      body: JSON.stringify({ character: character, film: film, guest: guest })
+    }).then(function(r){ return r.json(); }).then(function(res){
+      if (res && res.ok){
+        setVerdict("success", "You’re on the bill", character + " is yours. Your name stays off the public bill – see you in November.");
+        try { localStorage.setItem("castlist-name", guest); } catch(e){}
+        charInput.value = ""; filmInput.value = "";
+      } else if (res && res.reason === "taken"){
+        setVerdict("taken", "Taken", "Someone beat you to “" + (res.character || character) + "”.");
+      } else {
+        setVerdict("close", "Hiccup", "That didn’t save – give it a moment and try again.");
+      }
+      return refresh();
+    }).catch(function(){
+      setVerdict("close", "Hiccup", "That didn’t save – check your signal and try again.");
+    }).then(function(){
+      busy = false; claimBtn.disabled = false; claimBtn.textContent = "Claim it";
+    });
+  }
+
+  charInput.addEventListener("input", checkVerdict);
+  claimBtn.addEventListener("click", claim);
+  guestInput.addEventListener("keydown", function(e){ if (e.key === "Enter") claim(); });
+
+  if (API.indexOf("PASTE_") === 0){
+    listStatus.textContent = "Not wired up yet – the web app URL needs pasting into index.html.";
+  } else {
+    refresh();
+    setInterval(refresh, 60000);
+  }
+})();
+</script>
+</body>
+</html>
