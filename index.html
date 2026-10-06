@@ -277,6 +277,7 @@
     verdictEl.appendChild(document.createTextNode(text));
   }
   function checkVerdict(){
+    if (busy) return; /* a claim is mid-flight – don't talk over it */
     var norm = normalise(charInput.value);
     if (!norm){ setVerdict("", "", "Type a character to check the bill."); return; }
     var exact = null, near = [];
