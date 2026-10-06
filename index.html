@@ -230,7 +230,6 @@
 
   var claims = [], busy = false;
 
-  try { var savedName = localStorage.getItem("castlist-name"); if (savedName) guestInput.value = savedName; } catch(e){}
 
   /* ---------- matching ---------- */
   function normalise(s){
@@ -371,7 +370,6 @@
 
     function showSuccess(){
       setVerdict("success", "You’re on the bill", character + " is yours. Your name stays off the public bill – see you in November.");
-      try { localStorage.setItem("castlist-name", guest); } catch(e){}
       charInput.value = ""; filmInput.value = "";
     }
     function showMiss(){
