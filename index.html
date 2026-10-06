@@ -328,9 +328,21 @@
   }
 
   /* ---------- server ---------- */
+  /* Give list requests 8 seconds to answer, then cut and retry –
+     a hung request would otherwise leave the page loading forever. */
+  function fetchList(){
+    var ctl = ("AbortController" in window) ? new AbortController() : null;
+    var timer = ctl ? setTimeout(function(){ ctl.abort(); }, 8000) : null;
+    var opts = ctl ? { signal: ctl.signal } : {};
+    return fetch(API, opts).then(
+      function(r){ if (timer) clearTimeout(timer); return r; },
+      function(e){ if (timer) clearTimeout(timer); throw e; }
+    );
+  }
+
   var everLoaded = false, retryTimer = null;
   function refresh(){
-    return fetch(API).then(function(r){ return r.json(); }).then(function(data){
+    return fetchList().then(function(r){ return r.json(); }).then(function(data){
       claims = (data && data.claims) || [];
       everLoaded = true;
       renderList();
