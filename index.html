@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Cast List</title>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap">
 <style>
   :root{
@@ -412,14 +414,14 @@
         var onBill = ok && claims.some(function(c){ return normOf(c) === norm2; });
         if (onBill){
           showSuccess(); release();
-        } else if (attempts >= 8){
+        } else if (attempts >= 12){
           showMiss(); release();
         } else {
-          setTimeout(pollForClaim, 3000);
+          setTimeout(pollForClaim, 2000);
         }
       });
     }
-    setTimeout(pollForClaim, 2500);
+    setTimeout(pollForClaim, 1500);
   }
 
   charInput.addEventListener("input", checkVerdict);
